@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zsűri – titkos pontozás baráti körben</title>
+<meta name="description" content="Nyiss egy szobát, küldd el a linket, és mindenki titokban pontoz. A végén egyszerre bontjátok fel a borítékokat.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23ffb547'/%3E%3Cpath d='M16 6l2.9 6.2 6.8.8-5 4.6 1.3 6.7L16 21l-6 3.3 1.3-6.7-5-4.6 6.8-.8z' fill='%230d0f1f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f1f; --bg2:#12152a; --surf:#171a33; --surf2:#1f2342; --line:#2a2f55; --line2:#363c6a;
+    --ink:#f5f1e8; --muted:#a3a6c4; --dim:#6e7299;
+    --amber:#ffb547; --amber-soft:#3a2e1a; --coral:#ff6b5a; --coral-soft:#3b1e24;
+    --teal:#4fd1c5; --teal-soft:#16353a; --lilac:#b59cff; --sky:#7cb8ff;
+    --display:"Unbounded",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;color:var(--ink);font:15px/1.55 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{background:
+      radial-gradient(900px 520px at 50% -180px, rgba(255,181,71,.16), transparent 70%),
+      radial-gradient(700px 400px at 100% 0, rgba(181,156,255,.08), transparent 70%),
+      var(--bg);
+    min-height:100vh}
+  button,input,textarea{font:inherit;color:inherit}
+  .shell{max-width:1100px;margin:0 auto;padding:20px 22px 28px;min-height:100vh;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:26px}
+  .brand{display:flex;align-items:center;gap:11px;background:none;border:0;cursor:pointer;padding:0;font-family:var(--display);font-weight:900;font-size:20px;letter-spacing:.06em}
+  .logo{width:36px;height:36px;border-radius:50%;background:var(--amber);display:grid;place-items:center;color:var(--bg);box-shadow:0 0 0 4px rgba(255,181,71,.15),0 0 24px rgba(255,181,71,.35)}
+  .logo svg{width:20px;height:20px}
+  .tagline{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 0 rgba(255,107,90,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,107,90,.55)}70%{box-shadow:0 0 0 8px rgba(255,107,90,0)}100%{box-shadow:0 0 0 0 rgba(255,107,90,0)}}
+  .nav{display:flex;gap:22px;margin-left:auto}
+  .nav button{border:0;background:none;padding:8px 0;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;white-space:nowrap}
+  .nav button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transition:transform .2s}
+  .nav button.on{color:var(--ink)} .nav button.on::after{transform:scaleX(1)}
+  .nav button:hover{color:var(--ink)}
+  main{flex:1;padding:42px 0 36px}
+  footer{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--dim);border-top:1px dashed var(--line);padding-top:16px;flex-wrap:wrap}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+  h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+  .card{background:linear-gradient(180deg,var(--surf),var(--bg2));border:1px solid var(--line);border-radius:22px}
+  .btn{border:0;border-radius:999px;padding:13px 22px;font-weight:700;cursor:pointer;background:var(--amber);color:#1a1205;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s,filter .15s,box-shadow .2s;box-shadow:0 6px 22px rgba(255,181,71,.25)}
+  .btn:hover{filter:brightness(1.07)} .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:none;box-shadow:none}
+  .btn.coral{background:var(--coral);color:#fff;box-shadow:0 6px 22px rgba(255,107,90,.3)}
+  .btn.teal{background:var(--teal);color:#06201d;box-shadow:0 6px 22px rgba(79,209,197,.25)}
+  .btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink);box-shadow:none}
+  .btn.block{width:100%}
+  .btn.small{padding:8px 14px;font-size:13px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .field input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:13px 15px;outline:none;transition:border-color .15s,box-shadow .15s}
+  .field input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,181,71,.15)}
+  .field input.code{text-transform:uppercase;letter-spacing:.35em;font-family:var(--display);font-weight:700}
+  .hint{font-size:12px;color:var(--dim);margin-top:6px}
+  .err{color:var(--coral);font-size:13px;min-height:18px;margin-top:8px}
+  .hidden{display:none!important}
+
+  /* ---------- kezdőlap ---------- */
+  .hero{text-align:center;max-width:760px;margin:0 auto 44px}
+  .hero h1{font-size:clamp(46px,8vw,92px);font-weight:900;line-height:.95;margin:16px 0 18px;text-transform:uppercase}
+  .hero h1 span{color:var(--amber);text-shadow:0 0 40px rgba(255,181,71,.35)}
+  .hero p{color:var(--muted);font-size:17px;max-width:560px;margin:0 auto}
+  .paddles-demo{display:flex;justify-content:center;gap:14px;margin:34px 0 0}
+  .pd{width:68px;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .pd .face{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:26px}
+  .pd .stick{width:8px;height:34px;border-radius:4px;background:var(--line2)}
+  .pd small{font-size:11px;color:var(--dim)}
+  .paddles-demo .pd:nth-child(1){transform:rotate(-8deg)} .paddles-demo .pd:nth-child(3){transform:rotate(7deg)} .paddles-demo .pd:nth-child(4){transform:rotate(-4deg)}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:880px;margin:0 auto}
+  .panel{padding:26px}
+  .panel h2{font-size:20px;margin:8px 0 4px}
+  .panel .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .panel.join{border-style:dashed;background:transparent}
+  .fine{text-align:center;font-size:12px;color:var(--dim);margin-top:10px}
+  .ticket{display:grid;grid-template-columns:repeat(3,1fr);max-width:880px;margin:46px auto 0;border:1px dashed var(--line2);border-radius:18px;overflow:hidden}
+  .tk{padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
+  .tk + .tk{border-left:1px dashed var(--line2)}
+  .tk .no{font-family:var(--display);font-weight:900;font-size:26px;color:var(--amber);line-height:1}
+  .tk b{display:block;font-size:14px} .tk span{font-size:13px;color:var(--muted)}
+
+  /* ---------- szoba ---------- */
+  .roombar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px;flex-wrap:wrap}
+  .back{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;padding:0}
+  .back:hover{color:var(--ink)}
+  .live{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+  .invite{display:flex;align-items:stretch;border:1px dashed var(--amber);border-radius:14px;overflow:hidden;cursor:pointer;background:rgba(255,181,71,.06);padding:0}
+  .invite .l{padding:8px 14px;text-align:left}
+  .invite .l b{display:block;font-size:12px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase}
+  .invite .l span{font-family:var(--display);font-weight:700;letter-spacing:.28em;font-size:15px}
+  .invite .r{display:grid;place-items:center;padding:0 14px;border-left:1px dashed var(--amber);color:var(--amber);font-size:12px;font-weight:700}
+  .invite:hover{background:rgba(255,181,71,.12)}
+  .stagehead{text-align:center;margin-bottom:24px}
+  .round{display:inline-flex;gap:10px;align-items:center;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .round .pill{padding:4px 10px;border-radius:999px;border:1px solid var(--line2)}
+  .round .pill.live{border-color:var(--coral);color:var(--coral);background:var(--coral-soft)}
+  .round .pill.done{border-color:var(--teal);color:var(--teal);background:var(--teal-soft)}
+  .topic{font-size:clamp(28px,5vw,52px);font-weight:900;line-height:1.05;margin-top:14px;word-break:break-word;text-wrap:balance}
+  .seats{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 auto 26px;max-width:900px}
+  .seat{display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--surf);border:1px solid var(--line);font-size:13px;transition:border-color .3s,background .3s}
+  .seat.voted{border-color:rgba(79,209,197,.5);background:var(--teal-soft)}
+  .seat .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px}
+  .seat .nm{font-weight:700}
+  .seat .nm em{font-style:normal;color:var(--dim);font-weight:600}
+  .seat .st{font-size:11px;color:var(--dim)}
+  .seat.voted .st{color:var(--teal)}
+  .seat .crown{color:var(--amber)}
+  .seats-head{text-align:center;font-size:12px;color:var(--dim);margin:-10px 0 12px;letter-spacing:.06em}
+  .stage{max-width:900px;margin:0 auto;overflow:hidden;position:relative}
+  .stage::before{content:"";position:absolute;inset:-1px -1px auto -1px;height:140px;background:radial-gradient(420px 140px at 50% 0, rgba(255,181,71,.13), transparent 75%);pointer-events:none}
+  .stage-in{padding:34px 28px 30px;text-align:center;position:relative}
+  .stage h2{font-size:24px;margin:10px 0 6px}
+  .stage .sub{color:var(--muted);font-size:14px;margin:0 auto 26px;max-width:520px}
+  .paddles{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+  .paddles button{width:62px;height:88px;border-radius:14px;border:1px solid var(--line2);background:var(--bg);font-family:var(--display);font-weight:900;font-size:24px;cursor:pointer;transition:transform .15s,background .15s,border-color .15s,box-shadow .15s;position:relative}
+  .paddles button::after{content:"";position:absolute;left:50%;bottom:-12px;width:6px;height:12px;border-radius:0 0 3px 3px;background:var(--line2);transform:translateX(-50%);opacity:0;transition:opacity .15s}
+  .paddles button:hover{transform:translateY(-4px);border-color:var(--amber)}
+  .paddles button.sel{background:var(--amber);border-color:var(--amber);color:#1a1205;transform:translateY(-10px);box-shadow:0 14px 30px rgba(255,181,71,.35)}
+  .paddles button.sel::after{opacity:1;background:var(--amber)}
+  .envelope{margin:30px auto 0;display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:9px 16px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+  .envelope b{color:var(--amber);font-family:var(--display)}
+  .stage-foot{border-top:1px dashed var(--line2);padding:16px 22px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);position:relative}
+  .meter{display:flex;align-items:center;gap:10px}
+  .meter .bar{width:140px;height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+  .meter .bar div{height:100%;background:var(--teal);transition:width .4s}
+  .board{display:inline-flex;align-items:center;gap:22px;padding:18px 26px;border-radius:20px;background:#090b17;border:1px solid var(--line2);box-shadow:inset 0 0 30px rgba(255,181,71,.06);margin-bottom:22px}
+  .board .digits{font-family:var(--display);font-weight:900;font-size:clamp(56px,9vw,84px);line-height:1;color:var(--amber);text-shadow:0 0 22px rgba(255,181,71,.45);font-variant-numeric:tabular-nums}
+  .board .meta{text-align:left;font-size:12px;color:var(--muted);line-height:1.6}
+  .board .meta b{display:block;font-size:11px;letter-spacing:.18em;color:var(--ink)}
+  .extremes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+  .tag{font-size:12px;padding:6px 12px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  .tag b{color:var(--ink)}
+  .reveal-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;text-align:left;align-items:start}
+  .rp{display:flex;flex-wrap:wrap;gap:16px 12px;justify-content:center;padding-top:6px}
+  .rp .pd{width:78px;perspective:500px}
+  .rp .face{width:72px;height:72px;font-size:28px;animation:raise .6s cubic-bezier(.2,.9,.3,1.3) both;backface-visibility:hidden}
+  .rp .stick{animation:raise .6s cubic-bezier(.2,.9,.3,1.3) both}
+  .rp small{font-size:12px;color:var(--ink);font-weight:700;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+  @keyframes raise{from{opacity:0;transform:translateY(30px) rotateY(90deg)}to{opacity:1;transform:none}}
+  .hist{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .hist h3{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-family:Manrope,system-ui,sans-serif;font-weight:700;margin-bottom:12px}
+  .bars{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;align-items:end;height:110px}
+  .bars div{background:var(--line);border-radius:5px 5px 2px 2px;min-height:3px;position:relative;transition:height .5s}
+  .bars div.has{background:linear-gradient(180deg,var(--amber),var(--coral))}
+  .bars div span{position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:var(--ink)}
+  .axis{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:6px;font-size:11px;color:var(--dim);text-align:center}
+  .nextrow{display:flex;gap:10px;width:100%;max-width:580px}
+  .nextrow input{flex:1;background:var(--bg);border:1px solid var(--line2);border-radius:999px;padding:12px 18px;outline:none}
+  .nextrow input:focus{border-color:var(--amber)}
+  .scoreboard{max-width:900px;margin:28px auto 0;padding:22px}
+  .scoreboard h3{font-size:16px;margin-bottom:8px}
+  .srow{display:grid;grid-template-columns:70px 1fr 70px;gap:14px;align-items:center;padding:11px 0;border-top:1px dashed var(--line)}
+  .srow .r{font-family:var(--display);font-size:12px;color:var(--dim)}
+  .srow .t{font-weight:700}
+  .srow .d{font-size:12px;color:var(--dim)}
+  .srow .a{font-family:var(--display);font-weight:900;font-size:22px;color:var(--amber);text-align:right}
+
+  /* ---------- eszközök ---------- */
+  .tool-head{text-align:center;margin-bottom:30px}
+  .tool-head h1{font-size:clamp(34px,6vw,60px);font-weight:900;margin:12px 0 8px;text-transform:uppercase}
+  .tool-head p{color:var(--muted);margin:0}
+  .wheel-wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:start}
+  .wheel-stage{padding:28px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden}
+  .wheel-box{position:relative;width:100%;max-width:460px;aspect-ratio:1/1}
+  .wheel-box canvas{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 40px rgba(0,0,0,.45))}
+  .pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:30px solid var(--amber);filter:drop-shadow(0 0 8px rgba(255,181,71,.6));z-index:2}
+  .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:78px;height:78px;border-radius:50%;background:var(--bg);border:3px solid var(--amber);display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:11px;letter-spacing:.06em;cursor:pointer;color:var(--amber);box-shadow:0 0 0 6px rgba(13,15,31,.6),0 0 24px rgba(255,181,71,.35)}
+  .hub:hover{background:var(--amber);color:var(--bg)}
+  .result{margin-top:24px;text-align:center;min-height:90px}
+  .result .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .result b{display:block;font-family:var(--display);font-size:clamp(24px,4vw,36px);font-weight:900;color:var(--amber);margin-top:4px;word-break:break-word;text-shadow:0 0 22px rgba(255,181,71,.35)}
+  .result .acts{display:flex;gap:8px;justify-content:center;margin-top:12px}
+  .entries{padding:22px}
+  .entries h3{font-size:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .count{font:700 12px Manrope,system-ui,sans-serif;background:var(--amber-soft);color:var(--amber);border-radius:999px;padding:3px 10px}
+  .addrow{display:flex;gap:8px;margin-bottom:12px}
+  .addrow input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:11px 16px;outline:none}
+  .addrow input:focus{border-color:var(--amber)}
+  .elist{max-height:380px;overflow:auto}
+  .eitem{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .eitem .sw{width:12px;height:12px;border-radius:50%;flex:none}
+  .eitem input{flex:1;background:transparent;border:0;padding:5px 4px;outline:none;font-size:14px;min-width:0}
+  .eitem input:focus{background:var(--bg);border-radius:8px}
+  .eitem .rm{border:0;background:transparent;color:var(--dim);cursor:pointer;font-size:18px;padding:0 6px;line-height:1}
+  .eitem .rm:hover{color:var(--coral)}
+  .etools{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .linkbtn{background:none;border:0;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
+  .linkbtn:hover{color:var(--amber)}
+  .bulk{width:100%;min-height:160px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;outline:none;resize:vertical;font-size:14px;color:var(--ink)}
+  .rng{display:grid;grid-template-columns:.9fr 1.1fr;gap:22px;align-items:start}
+  .rng .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .check{display:flex;gap:9px;align-items:center;font-size:14px;margin:2px 0 14px;cursor:pointer;color:var(--muted)}
+  .check input{accent-color:var(--amber);width:16px;height:16px}
+  .rng-out{padding:30px 24px;text-align:center;min-height:360px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+  .bignum{font-family:var(--display);font-weight:900;font-size:clamp(80px,14vw,150px);line-height:1;color:var(--amber);text-shadow:0 0 34px rgba(255,181,71,.4);font-variant-numeric:tabular-nums;margin-top:8px}
+  .numchips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
+  .chip{font-family:var(--display);font-weight:900;font-size:24px;min-width:62px;height:62px;padding:0 12px;border-radius:50%;display:grid;place-items:center;background:var(--amber);color:#1a1205;animation:pop .35s both;box-shadow:0 6px 18px rgba(255,181,71,.25)}
+  @keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+  .rng-hist{margin-top:22px;font-size:13px;color:var(--dim)}
+  .rng-hist span{color:var(--muted)}
+  .dice{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .dice button{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .dice button:hover{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--surf2);border:1px solid var(--line2);padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+  .center{text-align:center;padding:80px 20px;color:var(--muted)}
+  .spin{width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  @media (max-width:860px){
+    .top{flex-wrap:wrap;gap:12px}
+    .tagline{display:none}
+    .nav{margin-left:0;width:100%;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line)}
+    .nav button{font-size:13px}
+    main{padding-top:28px}
+    .duo,.wheel-wrap,.rng,.reveal-grid{grid-template-columns:1fr}
+    .ticket{grid-template-columns:1fr}
+    .tk + .tk{border-left:0;border-top:1px dashed var(--line2)}
+    .paddles{gap:6px}
+    .paddles button{width:calc(20% - 6px);height:74px;font-size:20px}
+    .stage-in{padding:26px 14px}
+    .board{gap:14px;padding:14px 18px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <button class="brand" id="home-link" aria-label="Kezdőlap"><span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.4l-5.6 3.1 1.3-6.2L3 9l6.3-.7z"/></svg></span>ZSŰRI</button>
+    <div class="tagline"><span class="dot"></span><span id="tagline">Mindenki pontoz, senki nem leselkedik.</span></div>
+    <nav class="nav" id="nav">
+      <button data-v="score" class="on">Pontozás</button>
+      <button data-v="wheel">Szerencsekerék</button>
+      <button data-v="rng">Számhúzó</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <div class="center"><div class="spin"></div>Kapcsolódás…</div>
+  </main>
+
+  <footer><span>Zsűri · titkos pontozás baráti körben</span><span>Ingyenes, regisztráció nélkül ★</span></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDE96qnTKfCGXZd9wlit3eHsrGjPb8qc-g",
+  authDomain: "pontozo-1f173.firebaseapp.com",
+  projectId: "pontozo-1f173",
+  storageBucket: "pontozo-1f173.firebasestorage.app",
+  messagingSenderId: "45133896120",
+  appId: "1:45133896120:web:c842cf58d98d3fbd2a974d"
+};
+const MAX_MEMBERS = 30;
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, collection, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const fbApp = initializeApp(FIREBASE_CONFIG);
+const fs = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => n.toLocaleString("hu-HU",{maximumFractionDigits:1});
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(_){} } };
+const PALETTE = [
+  ["#ffb547","#1a1205"],["#ff6b5a","#ffffff"],["#4fd1c5","#06201d"],["#b59cff","#170d33"],
+  ["#7cb8ff","#071a33"],["#f7d774","#2a2205"],["#ff9ec4","#3a0f22"]
+];
+const colorFor = s => { let h=0; for(const ch of String(s)) h=(h*31+ch.charCodeAt(0))>>>0; return PALETTE[h%PALETTE.length]; };
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2200); }
+function newCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c=""; const r=crypto.getRandomValues(new Uint32Array(6)); for(const x of r) c+=A[x%A.length]; return c; }
+const cleanCode = s => String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+const inviteUrl = code => location.origin + location.pathname + "#" + code;
+const initial = n => (String(n||"?").trim().charAt(0) || "?").toUpperCase();
+
+let uid = null;
+let unsubs = [];
+function stopRoom(){ unsubs.forEach(u=>{ try{u()}catch(_){} }); unsubs = []; }
+
+/* ======================= KEZDŐLAP ======================= */
+function renderHome(prefCode=""){
+  stopRoom(); stopTools(); setNav("score");
+  $("#tagline").textContent = "Mindenki pontoz, senki nem leselkedik.";
+  if(location.hash) history.replaceState(null,"",location.pathname);
+  const name = store.get("pontozo-name") || "";
+  app.innerHTML = `
+  <section class="hero">
+    <div class="eyebrow">★ Titkos szavazás baráti körben ★</div>
+    <h1>Mindenki<br><span>zsűri.</span></h1>
+    <p>Film, recept, nyaralási ötlet vagy a szomszéd új frizurája: adjatok rá pontot, és csak a végén derül ki, ki mit gondolt.</p>
+    <div class="paddles-demo" aria-hidden="true">
+      <div class="pd"><div class="face" style="background:#4fd1c5;color:#06201d">7</div><div class="stick"></div><small>Bence</small></div>
+      <div class="pd"><div class="face" style="background:#ffb547;color:#1a1205">10</div><div class="stick"></div><small>Réka</small></div>
+      <div class="pd"><div class="face" style="background:#b59cff;color:#170d33">4</div><div class="stick"></div><small>Ádám</small></div>
+      <div class="pd"><div class="face" style="background:var(--surf2);color:var(--dim);border:2px dashed var(--line2)">?</div><div class="stick"></div><small>Te</small></div>
+    </div>
+  </section>
+  <div class="duo">
+    <form class="card panel" id="f-new">
+      <div class="eyebrow">Házigazda vagy?</div>
+      <h2>Nyiss egy szobát</h2>
+      <p class="sub">Te adod meg a témát, a többiek a linkkel csatlakoznak.</p>
+      <div class="field"><label for="n1">A neved</label><input id="n1" maxlength="30" value="${esc(name)}" placeholder="pl. Kori" autocomplete="nickname"></div>
+      <div class="field"><label for="t1">A téma</label><input id="t1" maxlength="120" placeholder="pl. Pénteki filmajánló"><div class="hint">Minden fordulóban új témát adhatsz.</div></div>
+      <button class="btn block" type="submit">Szoba megnyitása ★</button>
+      <div class="err" id="e1"></div>
+    </form>
+    <form class="card panel join" id="f-join">
+      <div class="eyebrow" style="color:var(--teal)">Meghívtak?</div>
+      <h2>Belépés kóddal</h2>
+      <p class="sub">Írd be a kapott szobakódot, vagy nyisd meg a meghívó linket.</p>
+      <div class="field"><label for="n2">A neved</label><input id="n2" maxlength="30" value="${esc(name)}" placeholder="pl. Réka" autocomplete="nickname"></div>
+      <div class="field"><label for="c2">Szobakód</label><input id="c2" class="code" maxlength="8" value="${esc(prefCode)}" placeholder="K7Q2XM"></div>
+      <button class="btn block teal" type="submit">Belépek →</button>
+      <div class="err" id="e2"></div>
+    </form>
+  </div>
+  <div class="ticket">
+    <div class="tk"><span class="no">1</span><div><b>Elküldöd a linket</b><span>Fiók és regisztráció nélkül, bárkinek.</span></div></div>
+    <div class="tk"><span class="no">2</span><div><b>Mindenki feltartja a tábláját</b><span>1-től 10-ig, lezárt borítékban.</span></div></div>
+    <div class="tk"><span class="no">3</span><div><b>Te bontod fel a borítékokat</b><span>Átlag, eloszlás, és jöhet a vita.</span></div></div>
+  </div>`;
+  if(prefCode) setTimeout(()=>{ const n=$("#n2"); (n.value?$("#c2"):n).focus(); $("#f-join").scrollIntoView({behavior:"smooth",block:"center"}); }, 50);
+  $("#f-new").onsubmit = async e=>{
+    e.preventDefault();
+    const nm = $("#n1").value.trim(), topic = $("#t1").value.trim();
+    if(!nm){ $("#e1").textContent="Add meg a neved."; return; }
+    if(!topic){ $("#e1").textContent="Mi legyen a téma?"; return; }
+    const btn = $("#f-new .btn"); btn.disabled = true; $("#e1").textContent="";
+    try{
+      await ready;
+      let code = null;
+      for(let i=0;i<5 && !code;i++){
+        const c = newCode();
+        try{
+          await setDoc(doc(fs,"rooms",c), { hostUid: uid, hostName: nm, topic, round: 1, status: "voting", createdAt: Date.now(), history: [] });
+          code = c;
+        }catch(err){ if(err?.code!=="permission-denied") throw err; }
+      }
+      if(!code) throw new Error("nocode");
+      store.set("pontozo-name", nm);
+      await setDoc(doc(fs,"rooms",code,"members",uid), { name: nm, joinedAt: Date.now(), votedRound: 0 });
+      openRoom(code);
+    }catch(err){ console.error(err); $("#e1").textContent = "Nem sikerült megnyitni a szobát. Próbáld újra."; btn.disabled=false; }
+  };
+  $("#f-join").onsubmit = async e=>{
+    e.preventDefault();
+    const nm = $("#n2").value.trim(), code = cleanCode($("#c2").value);
+    if(!nm){ $("#e2").textContent="Add meg a neved."; return; }
+    if(code.length<4){ $("#e2").textContent="Írd be a szobakódot."; return; }
+    const btn = $("#f-join .btn"); btn.disabled = true; $("#e2").textContent="";
+    const msg = await joinRoom(code, nm);
+    if(msg){ $("#e2").textContent = msg; btn.disabled=false; }
+  };
+}
+
+async function joinRoom(code, nm){
+  try{
+    await ready;
+    const r = await getDoc(doc(fs,"rooms",code));
+    if(!r.exists()) return "Ilyen kódú szobát nem találunk.";
+    const mref = doc(fs,"rooms",code,"members",uid);
+    const m = await getDoc(mref);
+    if(m.exists()) await setDoc(mref, { ...m.data(), name: nm });
+    else await setDoc(mref, { name: nm, joinedAt: Date.now(), votedRound: 0 });
+    store.set("pontozo-name", nm);
+    openRoom(code);
+    return null;
+  }catch(err){ console.error(err); return "Nem sikerült belépni. Próbáld újra."; }
+}
+
+/* ======================= SZOBA ======================= */
+function openRoom(code){
+  stopRoom(); stopTools(); setNav("score"); currentRoom = code;
+  if(location.hash !== "#"+code) history.replaceState(null,"",location.pathname+"#"+code);
+  $("#tagline").textContent = "Élő szoba – minden azonnal frissül.";
+  app.innerHTML = `<div class="center"><div class="spin"></div>Szoba betöltése…</div>`;
+
+  const S = { code, room:null, members:[], votes:null, myScore:null, myScoreRound:0, nextTopic:"" };
+  let votesUnsub = null;
+  const timer = setTimeout(()=>{ if(!S.room) app.innerHTML = `<div class="center">Nem érjük el a szobát. Nézd meg az internetkapcsolatot.</div>`; }, 10000);
+
+  unsubs.push(onSnapshot(doc(fs,"rooms",code), async snap=>{
+    clearTimeout(timer);
+    if(!snap.exists()){ app.innerHTML = `<div class="center">Ez a szoba nem létezik.<br><br><button class="btn ghost" id="gohome">Vissza a kezdőlapra</button></div>`; $("#gohome").onclick=()=>renderHome(); return; }
+    const prevRound = S.room?.round, prevStatus = S.room?.status;
+    S.room = snap.data();
+    if(!S.joinChecked){
+      S.joinChecked = true;
+      const me = await getDoc(doc(fs,"rooms",code,"members",uid));
+      if(!me.exists()){ stopRoom(); renderHome(code); return; }
+    }
+    if(S.room.round !== prevRound){
+      S.myScore = null; S.myScoreRound = S.room.round;
+      try{ const v = await getDoc(doc(fs,"rooms",code,"rounds",String(S.room.round),"votes",uid)); if(v.exists() && S.myScoreRound===S.room.round) S.myScore = v.data().score; }catch(_){}
+    }
+    if(S.room.status==="revealed" && (prevStatus!=="revealed" || prevRound!==S.room.round)){
+      if(votesUnsub) votesUnsub();
+      S.votes = null;
+      votesUnsub = onSnapshot(collection(fs,"rooms",code,"rounds",String(S.room.round),"votes"), vs=>{
+        S.votes = vs.docs.map(d=>({uid:d.id, ...d.data()})); render();
+      }, err=>{ console.error(err); S.votes = []; render(); });
+      unsubs.push(()=>votesUnsub && votesUnsub());
+    }
+    if(S.room.status!=="revealed" && votesUnsub){ votesUnsub(); votesUnsub=null; S.votes=null; }
+    render();
+  }, err=>{ console.error(err); app.innerHTML = `<div class="center">Nem sikerült betölteni a szobát.</div>`; }));
+
+  unsubs.push(onSnapshot(collection(fs,"rooms",code,"members"), snap=>{
+    S.members = snap.docs.map(d=>({uid:d.id, ...d.data()})).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));
+    render();
+  }));
+
+  async function vote(n){
+    const r = S.room; if(!r || r.status!=="voting") return;
+    const round = r.round, old = S.myScore;
+    S.myScore = n; render();
+    try{
+      const me = S.members.find(m=>m.uid===uid);
+      await setDoc(doc(fs,"rooms",code,"rounds",String(round),"votes",uid), { score: n, name: me?.name || store.get("pontozo-name") || "?" });
+      await updateDoc(doc(fs,"rooms",code,"members",uid), { votedRound: round });
+    }catch(err){ console.error(err); S.myScore = old; render(); toast("Nem sikerült menteni – lehet, hogy már felbontották a borítékokat."); }
+  }
+  async function reveal(){
+    try{ await updateDoc(doc(fs,"rooms",code), { status: "revealed" }); }catch(err){ console.error(err); toast("Nem sikerült felbontani."); }
+  }
+  async function nextRound(){
+    const r = S.room, votes = S.votes || [];
+    const topic = ($("#next-topic")?.value || "").trim() || r.topic;
+    const scores = votes.map(v=>({name:String(v.name||"?"), score:Number(v.score)})).filter(v=>v.score>=1);
+    const avg = scores.length ? scores.reduce((a,b)=>a+b.score,0)/scores.length : null;
+    const hist = [...(Array.isArray(r.history)?r.history:[]), { round: r.round, topic: r.topic, avg, n: scores.length, scores }].slice(-50);
+    try{ await updateDoc(doc(fs,"rooms",code), { round: r.round+1, status: "voting", topic, history: hist }); }
+    catch(err){ console.error(err); toast("Nem sikerült új fordulót indítani."); }
+  }
+
+  function render(){
+    const r = S.room; if(!r) return;
+    const isHost = r.hostUid === uid;
+    const ms = S.members.slice(0, MAX_MEMBERS);
+    const voted = ms.filter(m=>m.votedRound===r.round).length;
+    const revealed = r.status==="revealed";
+
+    const seats = ms.map(m=>{
+      const [bg,fg] = colorFor(m.name+m.uid);
+      const did = m.votedRound===r.round, isMe = m.uid===uid, host = m.uid===r.hostUid;
+      const st = revealed ? (did?"szavazott":"kimaradt") : (did ? "✓ szavazott" : "gondolkodik…");
+      return `<div class="seat ${did?"voted":""}"><span class="av" style="background:${bg};color:${fg}">${esc(initial(m.name))}</span>
+        <span><span class="nm">${host?'<span class="crown">★</span> ':""}${esc(m.name)}${isMe?' <em>(te)</em>':""}</span><br><span class="st">${st}</span></span></div>`;
+    }).join("");
+
+    let stage;
+    if(!revealed){
+      stage = `<div class="stage-in">
+          <div class="eyebrow">${S.myScore?"Leadtad – amíg nincs felbontás, módosíthatod":"A te pontod"}</div>
+          <h2>Hány pontot adsz?</h2>
+          <p class="sub">Emeld fel a tábládat! A pontod lezárt borítékban marad, amíg a házigazda fel nem bontja.</p>
+          <div class="paddles">${Array.from({length:10},(_,i)=>i+1).map(n=>`<button data-n="${n}" class="${S.myScore===n?"sel":""}" aria-label="${n} pont">${n}</button>`).join("")}</div>
+          <div class="envelope">✉ ${S.myScore?`Borítékodban: <b>${S.myScore}</b> pont`:"A borítékod még üres"}</div>
+        </div>
+        <div class="stage-foot">
+          <div class="meter"><span>${voted} / ${ms.length} szavazott</span><div class="bar"><div style="width:${ms.length?Math.round(voted/ms.length*100):0}%"></div></div></div>
+          ${isHost ? `<button class="btn coral" id="reveal" ${voted?"":"disabled"}>✉ Borítékok felbontása</button>`
+                   : `<span>A házigazda (${esc(r.hostName)}) bontja fel a borítékokat.</span>`}
+        </div>`;
+    } else if(S.votes===null){
+      stage = `<div class="stage-in"><div class="spin"></div>Borítékok felbontása…</div>`;
+    } else {
+      const sc = S.votes.map(v=>Number(v.score)).filter(x=>x>=1);
+      const avg = sc.length ? sc.reduce((a,b)=>a+b,0)/sc.length : null;
+      const counts = Array(10).fill(0); sc.forEach(x=>counts[x-1]++);
+      const maxC = Math.max(1,...counts);
+      const nameOf = v => (ms.find(x=>x.uid===v.uid)?.name || v.name || "?");
+      const sorted = [...S.votes].sort((a,b)=>a.score-b.score);
+      const low = sorted[0], high = sorted[sorted.length-1];
+      const lows = S.votes.filter(v=>v.score===low?.score).map(nameOf), highs = S.votes.filter(v=>v.score===high?.score).map(nameOf);
+      const spread = sc.length>1 ? Math.sqrt(sc.reduce((a,x)=>a+(x-avg)**2,0)/sc.length) : 0;
+      const mood = sc.length<2 ? "" : spread<1 ? "Ritka egyetértés!" : spread<2 ? "Nagyjából egy véleményen vagytok." : spread<3 ? "Megoszlanak a vélemények." : "Ebből vita lesz!";
+      const order = new Map(ms.map((m,i)=>[m.uid,i]));
+      const pads = [...S.votes].sort((a,b)=>(order.get(a.uid)??99)-(order.get(b.uid)??99)).map((v,i)=>{
+        const nm = nameOf(v); const [bg,fg] = colorFor(nm+v.uid);
+        return `<div class="pd"><div class="face" style="background:${bg};color:${fg};animation-delay:${i*110}ms">${esc(v.score)}</div><div class="stick" style="animation-delay:${i*110}ms"></div><small title="${esc(nm)}">${esc(nm)}${v.uid===uid?" (te)":""}</small></div>`;
+      }).join("");
+      stage = `<div class="stage-in">
+          <div class="eyebrow">Felbontva ✉</div>
+          <h2 style="margin-bottom:18px">A zsűri döntött</h2>
+          <div class="board"><div class="digits">${avg!==null?fmt(Math.round(avg*10)/10):"–"}</div><div class="meta"><b>ZSŰRI ÁTLAG</b>${sc.length} szavazat · 10-ből<br>${esc(mood)}</div></div>
+          ${sc.length>1 && low.score!==high.score ? `<div class="extremes"><span class="tag">Legszigorúbb: <b>${esc(lows.join(", "))}</b> (${low.score})</span><span class="tag">Legbőkezűbb: <b>${esc(highs.join(", "))}</b> (${high.score})</span></div>`:""}
+          ${sc.length ? `<div class="reveal-grid">
+            <div class="rp">${pads}</div>
+            <div class="hist"><h3>Eloszlás</h3>
+              <div class="bars">${counts.map(c=>`<div class="${c?"has":""}" style="height:${c? Math.max(8, c/maxC*100):3}%">${c?`<span>${c}</span>`:""}</div>`).join("")}</div>
+              <div class="axis">${Array.from({length:10},(_,i)=>`<span>${i+1}</span>`).join("")}</div>
+            </div></div>` : `<p class="sub">Ebben a fordulóban senki nem adott pontot.</p>`}
+        </div>
+        <div class="stage-foot">${isHost
+          ? `<div class="nextrow"><input id="next-topic" maxlength="120" placeholder="Következő téma (üresen marad: ugyanez)" value="${esc(S.nextTopic)}"><button class="btn" id="next">Következő forduló →</button></div>`
+          : `<span>A házigazda indítja a következő fordulót.</span>`}</div>`;
+    }
+
+    const hist = (Array.isArray(r.history)?r.history:[]).slice().reverse();
+    const histHtml = hist.length ? `<section class="card scoreboard"><h3>Eredménytábla</h3>${hist.map(h=>`
+      <div class="srow"><span class="r">${esc(h.round)}. FORD.</span><div><div class="t">${esc(h.topic)}</div>
+        <div class="d">${(h.scores||[]).map(s=>`${esc(s.name)} ${esc(s.score)}`).join(" · ") || "nincs szavazat"}</div></div>
+        <span class="a">${h.avg!=null?fmt(Math.round(h.avg*10)/10):"–"}</span></div>`).join("")}</section>` : "";
+
+    const focusedNext = document.activeElement?.id === "next-topic";
+    if(focusedNext) S.nextTopic = $("#next-topic").value;
+
+    app.innerHTML = `
+      <div class="roombar">
+        <button class="back" id="leave">← Kilépés a szobából</button>
+        <span class="live"><span class="dot"></span>Élő</span>
+        <button class="invite" id="invite" title="Meghívó link másolása"><span class="l"><b>Szobakód</b><span>${esc(code)}</span></span><span class="r">LINK<br>MÁSOLÁSA</span></button>
+      </div>
+      <div class="stagehead">
+        <div class="round"><span class="pill">${esc(r.round)}. forduló</span><span class="pill ${revealed?"done":"live"}">${revealed?"Felbontva":"Szavazás zajlik"}</span></div>
+        <h1 class="topic">${esc(r.topic)}</h1>
+      </div>
+      <div class="seats-head">ZSŰRITAGOK · ${ms.length} FŐ</div>
+      <div class="seats">${seats}</div>
+      <section class="card stage">${stage}</section>
+      ${histHtml}`;
+
+    $("#leave").onclick = ()=>{ currentRoom = null; renderHome(); };
+    $("#invite").onclick = async ()=>{
+      const url = inviteUrl(code);
+      try{ await navigator.clipboard.writeText(url); toast("Meghívó link a vágólapon ✓"); }
+      catch(_){ toast(url); }
+    };
+    app.querySelectorAll(".paddles button").forEach(b=>b.onclick=()=>vote(Number(b.dataset.n)));
+    const rv = $("#reveal"); if(rv) rv.onclick = ()=>{ rv.disabled = true; reveal(); };
+    const nx = $("#next"); if(nx) nx.onclick = ()=>{ nx.disabled = true; S.nextTopic = ""; nextRound(); };
+    const nt = $("#next-topic");
+    if(nt){ nt.oninput = ()=>{ S.nextTopic = nt.value; }; nt.onkeydown = e=>{ if(e.key==="Enter"){ e.preventDefault(); nx.click(); } };
+      if(focusedNext){ nt.focus(); nt.setSelectionRange(nt.value.length, nt.value.length); } }
+  }
+}
+
+/* ======================= FÜLEK ======================= */
+let currentRoom = null;
+let wheelAnim = null, rngTimer = null;
+function setNav(v){ document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.v===v)); }
+function stopTools(){ if(wheelAnim){ cancelAnimationFrame(wheelAnim); wheelAnim=null; } if(rngTimer){ clearInterval(rngTimer); rngTimer=null; } window.onresize = null; }
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
+  const v = b.dataset.v;
+  if(v==="wheel") location.hash = "kerek";
+  else if(v==="rng") location.hash = "szam";
+  else if(currentRoom) location.hash = currentRoom;
+  else { history.replaceState(null,"",location.pathname); route(); }
+});
+function cryptoInt(min, max){
+  const range = max - min + 1;
+  const lim = Math.floor(4294967296 / range) * range;
+  const a = new Uint32Array(1);
+  do { crypto.getRandomValues(a); } while(a[0] >= lim);
+  return min + (a[0] % range);
+}
+
+/* ======================= SZERENCSEKERÉK ======================= */
+const WHEEL_COLORS = ["#ffb547","#ff6b5a","#4fd1c5","#b59cff","#7cb8ff","#f7d774","#ff9ec4","#8ee39b"];
+const WHEEL_INK    = ["#1a1205","#ffffff","#06201d","#170d33","#071a33","#2a2205","#3a0f22","#0b2a12"];
+function loadEntries(){
+  try{ const a = JSON.parse(store.get("pontozo-wheel")); if(Array.isArray(a)) return a.map(String); }catch(_){}
+  return ["Pizza","Sushi","Burger","Gyros","Tészta","Saláta"];
+}
+function renderWheel(){
+  stopRoom(); stopTools(); setNav("wheel");
+  $("#tagline").textContent = "Pörgesd meg, és ne vitatkozz vele.";
+  let entries = loadEntries();
+  let rot = 0, spinning = false, lastWinner = null, bulkMode = false;
+  const save = ()=>store.set("pontozo-wheel", JSON.stringify(entries));
+  const live = ()=>entries.map(e=>e.trim()).filter(Boolean);
+  const colorIdx = (i,n)=>{ let c = i % WHEEL_COLORS.length; if(n>1 && i===n-1 && c===0) c = 2; return c; };
+
+  app.innerHTML = `
+    <div class="tool-head"><div class="eyebrow">★ Ha a zsűri sem tud dönteni ★</div><h1>Szerencsekerék</h1><p>Írd be a lehetőségeket – minden új tétel egy új cikkely a keréken.</p></div>
+    <div class="wheel-wrap">
+      <section class="card wheel-stage">
+        <div class="wheel-box"><div class="pointer"></div><canvas id="wheel"></canvas><button class="hub" id="hub">PÖRGESD!</button></div>
+        <div class="result" id="result"><div class="lbl">&nbsp;</div></div>
+      </section>
+      <aside class="card entries">
+        <h3>Tételek <span class="count" id="ecount"></span></h3>
+        <div id="edit-area"></div>
+        <div class="etools">
+          <button class="linkbtn" id="bulk">Tömeges beírás</button>
+          <button class="linkbtn" id="shuffle">Keverés</button>
+          <button class="linkbtn" id="clear">Mind törlése</button>
+        </div>
+      </aside>
+    </div>`;
+
+  const cv = $("#wheel"), ctx = cv.getContext("2d");
+  function size(){ const r = cv.getBoundingClientRect(); const d = window.devicePixelRatio||1; cv.width = Math.round(r.width*d); cv.height = Math.round(r.height*d); draw(); }
+  function draw(){
+    const W = cv.width, R = W/2, items = live(), n = items.length;
+    ctx.clearRect(0,0,W,W);
+    ctx.save(); ctx.translate(R,R);
+    if(!n){
+      ctx.beginPath(); ctx.arc(0,0,R-6,0,Math.PI*2); ctx.fillStyle="#171a33"; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle="#363c6a"; ctx.setLineDash([10,10]); ctx.stroke(); ctx.restore(); return;
+    }
+    const seg = Math.PI*2/n;
+    for(let i=0;i<n;i++){
+      const a0 = rot + i*seg, a1 = a0 + seg, ci = colorIdx(i,n);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-6,a0,a1); ctx.closePath();
+      ctx.fillStyle = WHEEL_COLORS[ci]; ctx.fill();
+      ctx.lineWidth = Math.max(2, W/300); ctx.strokeStyle = "#0d0f1f"; ctx.stroke();
+      // felirat
+      ctx.save(); ctx.rotate(a0 + seg/2);
+      const fsz = Math.max(W/48, Math.min(W/18, (R*seg)/2.2));
+      ctx.font = `700 ${fsz}px Unbounded, Manrope, sans-serif`;
+      ctx.fillStyle = WHEEL_INK[ci]; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      const maxW = R - 6 - W*0.11 - W*0.035;
+      let t = items[i];
+      if(ctx.measureText(t).width > maxW){ while(t.length>1 && ctx.measureText(t+"…").width > maxW) t = t.slice(0,-1); t += "…"; }
+      ctx.fillText(t, R - 6 - W*0.035, 0);
+      ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(0,0,R-6,0,Math.PI*2); ctx.lineWidth = W/90; ctx.strokeStyle = "#ffb547"; ctx.stroke();
+    ctx.restore();
+  }
+  function winnerIndex(){
+    const n = live().length, seg = Math.PI*2/n;
+    const a = ((Math.PI*1.5 - rot) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
+    return Math.floor(a/seg) % n;
+  }
+  function showResult(){
+    const items = live();
+    if(lastWinner===null){ $("#result").innerHTML = `<div class="lbl">${items.length<2?"Adj meg legalább 2 tételt":"Kattints a közepére!"}</div>`; return; }
+    $("#result").innerHTML = `<div class="lbl">★ A kerék szerint ★</div><b>${esc(lastWinner)}</b>
+      <div class="acts"><button class="btn small ghost" id="again">↻ Újra</button><button class="btn small ghost" id="remove">✕ Levétel a kerékről</button></div>`;
+    $("#again").onclick = spin;
+    $("#remove").onclick = ()=>{ const i = entries.findIndex(e=>e.trim()===lastWinner); if(i>=0){ entries.splice(i,1); save(); } lastWinner=null; renderList(); draw(); showResult(); };
+  }
+  function spin(){
+    const items = live();
+    if(spinning || items.length<2){ if(items.length<2) toast("Legalább 2 tétel kell a pörgetéshez."); return; }
+    spinning = true; lastWinner = null;
+    $("#result").innerHTML = `<div class="lbl">Pörög…</div>`;
+    document.querySelectorAll(".entries input, .entries button").forEach(el=>el.disabled=true);
+    const start = rot, extra = Math.PI*2*(5 + Math.random()*3) + Math.random()*Math.PI*2;
+    const dur = 4800 + Math.random()*1200, t0 = performance.now();
+    const ease = t => 1 - Math.pow(1-t, 4);
+    const step = now=>{
+      const t = Math.min(1,(now-t0)/dur);
+      rot = start + extra*ease(t); draw();
+      if(t<1) wheelAnim = requestAnimationFrame(step);
+      else {
+        wheelAnim = null; spinning = false; rot = rot % (Math.PI*2);
+        lastWinner = items[winnerIndex()];
+        document.querySelectorAll(".entries input, .entries button").forEach(el=>el.disabled=false);
+        showResult();
+      }
+    };
+    wheelAnim = requestAnimationFrame(step);
+  }
+  function renderList(){
+    $("#ecount").textContent = live().length;
+    const area = $("#edit-area");
+    if(bulkMode){
+      area.innerHTML = `<textarea class="bulk" id="bulktext" placeholder="Soronként egy tétel">${esc(entries.join("\n"))}</textarea>
+        <button class="btn small" id="bulkok" style="margin-top:8px">Kész</button>`;
+      $("#bulktext").oninput = e=>{ entries = e.target.value.split("\n"); save(); $("#ecount").textContent = live().length; draw(); };
+      $("#bulkok").onclick = ()=>{ bulkMode=false; entries = live(); save(); renderList(); draw(); showResult(); };
+      $("#bulk").textContent = "Lista nézet";
+      return;
+    }
+    $("#bulk").textContent = "Tömeges beírás";
+    area.innerHTML = `<form class="addrow" id="addf"><input id="newe" maxlength="60" placeholder="Új tétel, pl. Mexikói"><button class="btn small" type="submit">+ Hozzáad</button></form>
+      <div class="elist">${entries.map((e,i)=>`<div class="eitem"><span class="sw" style="background:${WHEEL_COLORS[colorIdx(i,entries.length)]}"></span>
+        <input data-i="${i}" value="${esc(e)}" maxlength="60"><button class="rm" data-rm="${i}" title="Törlés">×</button></div>`).join("") || `<p class="hint">Még nincs tétel – írj be fent egyet!</p>`}</div>`;
+    $("#addf").onsubmit = e=>{ e.preventDefault(); const v = $("#newe").value.trim(); if(!v) return; entries.push(v); save(); renderList(); draw(); showResult(); $("#newe").focus(); };
+    area.querySelectorAll(".eitem input").forEach(inp=>inp.oninput=()=>{ entries[Number(inp.dataset.i)] = inp.value; save(); $("#ecount").textContent = live().length; draw(); });
+    area.querySelectorAll(".eitem input").forEach(inp=>inp.onblur=()=>{ if(!inp.value.trim()){ entries.splice(Number(inp.dataset.i),1); save(); renderList(); draw(); showResult(); } });
+    area.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ entries.splice(Number(b.dataset.rm),1); save(); renderList(); draw(); showResult(); });
+  }
+  $("#bulk").onclick = ()=>{ if(spinning) return; bulkMode = !bulkMode; if(!bulkMode){ entries = live(); save(); } renderList(); };
+  $("#shuffle").onclick = ()=>{ if(spinning) return; for(let i=entries.length-1;i>0;i--){ const j = cryptoInt(0,i); [entries[i],entries[j]]=[entries[j],entries[i]]; } save(); renderList(); draw(); };
+  let clearArmed = false;
+  $("#clear").onclick = ()=>{ if(spinning) return; if(!clearArmed){ clearArmed = true; $("#clear").textContent="Biztos? Kattints újra"; setTimeout(()=>{ clearArmed=false; const c=$("#clear"); if(c) c.textContent="Mind törlése"; },3000); return; } entries = []; save(); lastWinner=null; renderList(); draw(); showResult(); };
+  $("#hub").onclick = spin;
+  cv.onclick = spin;
+  renderList(); showResult();
+  requestAnimationFrame(size);
+  window.onresize = size;
+  if(document.fonts) document.fonts.ready.then(()=>{ if(document.body.contains(cv)) draw(); });
+}
+
+/* ======================= RANDOM SZÁM ======================= */
+function renderRng(){
+  stopRoom(); stopTools(); setNav("rng");
+  $("#tagline").textContent = "Tiszta véletlen, semmi csalás.";
+  const st = (()=>{ try{ return JSON.parse(store.get("pontozo-rng")) || {}; }catch(_){ return {}; } })();
+  const S = { min: st.min ?? 1, max: st.max ?? 100, count: st.count ?? 1, unique: st.unique ?? true, sort: st.sort ?? false, hist: [] };
+  app.innerHTML = `
+    <div class="tool-head"><div class="eyebrow">★ A véletlen nem elfogult ★</div><h1>Számhúzó</h1><p>Kockadobás, sorsolás, lottó – add meg a tartományt, és húzz.</p></div>
+    <div class="rng">
+      <section class="card panel">
+        <div class="dice">
+          <button data-p="1,6,1">🎲 Kocka (1–6)</button>
+          <button data-p="1,6,2">🎲🎲 Két kocka</button>
+          <button data-p="1,10,1">1–10</button>
+          <button data-p="1,100,1">1–100</button>
+          <button data-p="coin">🪙 Fej vagy írás</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="rmin">Legkisebb</label><input id="rmin" type="number" value="${S.min}"></div>
+          <div class="field"><label for="rmax">Legnagyobb</label><input id="rmax" type="number" value="${S.max}"></div>
+        </div>
+        <div class="field"><label for="rcnt">Hány számot húzzak?</label><input id="rcnt" type="number" min="1" max="100" value="${S.count}"></div>
+        <label class="check"><input type="checkbox" id="runi" ${S.unique?"checked":""}> Ne legyen ismétlődés</label>
+        <label class="check" style="margin-top:-10px"><input type="checkbox" id="rsort" ${S.sort?"checked":""}> Növekvő sorrendben</label>
+        <button class="btn block" id="rgo">🎲 Húzás</button>
+        <div class="err" id="rerr"></div>
+      </section>
+      <section class="card rng-out" id="rout">
+        <div class="eyebrow">Az eredmény itt jelenik meg</div>
+        <div class="bignum" style="color:var(--line2);text-shadow:none">?</div>
+      </section>
+    </div>`;
+  const read = ()=>({ min: Math.trunc(Number($("#rmin").value)), max: Math.trunc(Number($("#rmax").value)), count: Math.trunc(Number($("#rcnt").value)), unique: $("#runi").checked, sort: $("#rsort").checked });
+  const persist = ()=>{ const r = read(); store.set("pontozo-rng", JSON.stringify(r)); };
+  ["#rmin","#rmax","#rcnt","#runi","#rsort"].forEach(id=>$(id).onchange = persist);
+  function histHtml(){ const h = S.shown||[]; return h.length ? `<div class="rng-hist">Korábban: <span>${h.map(esc).join(" · ")}</span></div>` : ""; }
+  function animateTo(finalHtml, label, roll){
+    if(rngTimer) clearInterval(rngTimer);
+    const out = $("#rout"); let k = 0;
+    $("#rgo").disabled = true;
+    rngTimer = setInterval(()=>{
+      out.innerHTML = `<div class="eyebrow">Sorsolás…</div><div class="bignum" style="opacity:.55">${esc(roll())}</div>`;
+      if(++k > 12){ clearInterval(rngTimer); rngTimer = null; out.innerHTML = `<div class="eyebrow">${label}</div>${finalHtml}${histHtml()}`; $("#rgo").disabled = false; }
+    }, 55);
+  }
+  function go(){
+    $("#rerr").textContent = "";
+    const r = read();
+    if(!Number.isFinite(r.min) || !Number.isFinite(r.max)){ $("#rerr").textContent = "Adj meg két egész számot."; return; }
+    if(r.min > r.max){ $("#rerr").textContent = "A legkisebb nem lehet nagyobb a legnagyobbnál."; return; }
+    if(r.max - r.min > 1e9){ $("#rerr").textContent = "Túl nagy a tartomány (max. 1 milliárd)."; return; }
+    if(!(r.count>=1 && r.count<=100)){ $("#rerr").textContent = "1 és 100 közötti darabszámot adj meg."; return; }
+    const span = r.max - r.min + 1;
+    if(r.unique && r.count > span){ $("#rerr").textContent = `Ismétlődés nélkül legfeljebb ${span} számot lehet húzni ebből a tartományból.`; return; }
+    persist();
+    let nums = [];
+    if(r.unique){ const seen = new Set(); while(nums.length < r.count){ const x = cryptoInt(r.min, r.max); if(!seen.has(x)){ seen.add(x); nums.push(x); } } }
+    else for(let i=0;i<r.count;i++) nums.push(cryptoInt(r.min, r.max));
+    if(r.sort) nums.sort((a,b)=>a-b);
+    const label = `${r.min}–${r.max} között${r.count>1?` · ${r.count} db`:""}`;
+    const html = nums.length===1
+      ? `<div class="bignum">${nums[0]}</div>`
+      : `<div class="numchips">${nums.map((n,i)=>`<span class="chip" style="animation-delay:${i*50}ms">${n}</span>`).join("")}</div>${r.count>1 && r.max-r.min<1000?`<div class="hint" style="margin-top:14px">Összeg: ${nums.reduce((a,b)=>a+b,0)}</div>`:""}`;
+    const prev = S.hist.slice(); S.hist.unshift(nums.join(", ")); S.hist = S.hist.slice(0,8);
+    S.shown = prev; animateTo(html, label, ()=>cryptoInt(r.min, r.max));
+  }
+  function coin(){
+    $("#rerr").textContent = "";
+    const res = cryptoInt(0,1) ? "Fej" : "Írás";
+    const prev = S.hist.slice(); S.hist.unshift(res); S.hist = S.hist.slice(0,8);
+    S.shown = prev; animateTo(`<div class="bignum" style="font-size:clamp(64px,11vw,120px)">${res}</div>`, "🪙 Pénzfeldobás", ()=>cryptoInt(0,1)?"Fej":"Írás");
+  }
+  document.querySelectorAll(".dice button").forEach(b=>b.onclick=()=>{
+    if(b.dataset.p==="coin"){ coin(); return; }
+    const [mn,mx,c] = b.dataset.p.split(",").map(Number);
+    $("#rmin").value = mn; $("#rmax").value = mx; $("#rcnt").value = c; $("#runi").checked = false; $("#rsort").checked = false;
+    go();
+  });
+  $("#rgo").onclick = go;
+}
+
+/* ======================= INDULÁS ======================= */
+let readyResolve; const ready = new Promise(r=>readyResolve=r);
+onAuthStateChanged(auth, u=>{ if(u){ uid = u.uid; readyResolve(); } });
+signInAnonymously(auth).catch(err=>{
+  console.error(err);
+  app.innerHTML = `<div class="center">Nem sikerült csatlakozni (${esc(err?.code||"hiba")}).<br>(A Firebase-ben be kell kapcsolni az <b>Anonymous</b> belépést.)</div>`;
+});
+$("#home-link").onclick = ()=>{ currentRoom = null; if(location.hash) history.replaceState(null,"",location.pathname); route(); };
+
+function route(){
+  const raw = location.hash.slice(1);
+  if(raw==="kerek"){ renderWheel(); return; }
+  if(raw==="szam"){ renderRng(); return; }
+  stopTools(); setNav("score");
+  const code = cleanCode(raw);
+  if(code.length>=4){
+    ready.then(async ()=>{
+      try{
+        const me = await getDoc(doc(fs,"rooms",code,"members",uid));
+        if(me.exists()) openRoom(code); else renderHome(code);
+      }catch(_){ renderHome(code); }
+    });
+  } else ready.then(()=>renderHome());
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
