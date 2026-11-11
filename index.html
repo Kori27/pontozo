@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pontozó</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f3ee; --card:#fffdf9; --ink:#1f1d1a; --muted:#77716a; --line:#e6dfd4;
+    --accent:#c2410c; --accent-soft:#fde7d9; --ok:#15803d; --ok-soft:#dcfce7; --gold:#b7791f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:clamp(28px,5vw,40px);margin:0;letter-spacing:-.02em;line-height:1.1}
+  .sub{color:var(--muted);font-size:14px;margin-top:4px}
+  nav{display:flex;gap:4px;background:#ece6dc;padding:4px;border-radius:12px}
+  nav button{border:0;background:transparent;padding:8px 14px;border-radius:9px;font:600 14px Inter,sans-serif;color:var(--muted);cursor:pointer}
+  nav button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+  h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:22px;margin:0 0 12px}
+  h3{font-size:16px;margin:0 0 10px}
+  label.lbl{display:block;font-weight:600;font-size:13px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+  input[type=text],input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:15px Inter,sans-serif;background:#fff}
+  input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+  .btn{border:0;background:var(--accent);color:#fff;font:600 15px Inter,sans-serif;padding:12px 18px;border-radius:11px;cursor:pointer}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.small{padding:7px 11px;font-size:13px;border-radius:8px}
+  .btn.danger{background:transparent;color:#b91c1c;border:1px solid #f1c4c4}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .crit{padding:12px 0;border-top:1px dashed var(--line)}
+  .crit:first-of-type{border-top:0}
+  .crit-name{font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+  .crit-name small{color:var(--muted);font-weight:500}
+  .scale{display:flex;gap:6px;flex-wrap:wrap}
+  .scale button{min-width:40px;height:40px;border:1px solid var(--line);background:#fff;border-radius:10px;font:600 15px Inter,sans-serif;cursor:pointer;color:var(--ink)}
+  .scale button:hover{border-color:var(--accent)}
+  .scale button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .item-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .done{text-align:center;padding:40px 20px}
+  .done .big{font-size:48px}
+  .rank{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+  .rank:first-child{border-top:0}
+  .pos{font-family:Fraunces,serif;font-weight:800;font-size:26px;color:var(--muted);text-align:center}
+  .rank.first .pos{color:var(--gold)}
+  .score{font-family:Fraunces,serif;font-weight:800;font-size:28px}
+  .score small{font:500 13px Inter,sans-serif;color:var(--muted)}
+  .bars{margin-top:8px;display:grid;gap:5px}
+  .bar{display:grid;grid-template-columns:minmax(90px,170px) 1fr 42px;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+  .track{height:8px;background:#efe9df;border-radius:99px;overflow:hidden}
+  .fill{height:100%;background:var(--accent);border-radius:99px}
+  .bar b{color:var(--ink);text-align:right;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  td.num,th.num{text-align:right}
+  .scroll{overflow-x:auto}
+  .edit-row{display:grid;grid-template-columns:1fr 90px 36px;gap:8px;margin-bottom:8px;align-items:center}
+  .edit-row.items{grid-template-columns:1fr 36px}
+  .x{border:1px solid var(--line);background:#fff;border-radius:9px;height:40px;cursor:pointer;color:var(--muted);font-size:18px}
+  .note{font-size:13px;color:var(--muted)}
+  .banner{font-size:13px;padding:10px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f3dfb5;color:#7a5414;margin-bottom:14px}
+  .err{color:#b91c1c;font-size:14px;margin-top:8px}
+  .empty{color:var(--muted);text-align:center;padding:30px 10px}
+  .sticky{position:sticky;bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .sticky .btn{background:var(--accent)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">Pontozó</h1>
+      <div class="sub" id="subtitle">Betöltés…</div>
+    </div>
+    <nav>
+      <button data-tab="vote" class="on">Szavazás</button>
+      <button data-tab="results">Eredmények</button>
+      <button data-tab="setup">Versenyzők &amp; szempontok</button>
+    </nav>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <!-- SZAVAZÁS -->
+  <section id="tab-vote">
+    <div id="vote-form">
+      <div class="card">
+        <label class="lbl" for="voter">A neved</label>
+        <input type="text" id="voter" placeholder="pl. Kovács Anna" autocomplete="off">
+        <div class="note" style="margin-top:6px">Ugyanazzal a névvel újra szavazva a korábbi pontjaid felülíródnak.</div>
+      </div>
+      <div id="edit-hint" class="hidden" style="margin:-4px 0 14px;text-align:right">
+        <button class="btn ghost small" id="goto-setup">✎ Versenyzők és szempontok szerkesztése</button>
+      </div>
+      <div id="vote-items"></div>
+      <div class="sticky">
+        <span id="progress">0 / 0 pont megadva</span>
+        <button class="btn" id="submit" disabled>Szavazat leadása</button>
+      </div>
+      <div id="vote-err" class="err"></div>
+    </div>
+    <div id="vote-done" class="card done hidden">
+      <div class="big">✓</div>
+      <h2 id="done-msg">Köszönjük!</h2>
+      <p class="note">A szavazatod rögzítve. Add tovább a következő szavazónak.</p>
+      <div class="row" style="justify-content:center;margin-top:16px">
+        <button class="btn" id="next-voter">Következő szavazó</button>
+        <button class="btn ghost" id="see-results">Eredmények megtekintése</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- EREDMÉNYEK -->
+  <section id="tab-results" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px">
+        <h2 style="margin:0">Összesítés</h2>
+        <span class="pill" id="voter-count">0 szavazó</span>
+      </div>
+      <div class="note" id="results-note" style="margin-bottom:8px"></div>
+      <div id="ranking"></div>
+    </div>
+    <div class="card">
+      <h3>Szavazatok egyenként</h3>
+      <div class="scroll" id="voters-table"></div>
+    </div>
+  </section>
+
+  <!-- BEÁLLÍTÁSOK -->
+  <section id="tab-setup" class="hidden">
+    <div class="card">
+      <label class="lbl" for="cfg-title">Cím</label>
+      <input type="text" id="cfg-title">
+      <div style="height:14px"></div>
+      <label class="lbl" for="cfg-max">Pontskála: 1-től</label>
+      <input type="number" id="cfg-max" min="2" max="10" style="max-width:120px">
+    </div>
+    <div class="card">
+      <h3>Versenyzők</h3>
+      <div id="cfg-items"></div>
+      <button class="btn ghost small" id="add-item">+ Új versenyző</button>
+      <div class="note" style="margin-top:8px">A név bármikor átírható, a már leadott pontok megmaradnak. Ha csak egy dolgot pontoztok, elég egyetlen sor.</div>
+    </div>
+    <div class="card">
+      <h3>Szempontok <span class="note">(név · súly)</span></h3>
+      <div id="cfg-crits"></div>
+      <button class="btn ghost small" id="add-crit">+ Új szempont</button>
+      <div class="note" style="margin-top:8px">A súly azt adja meg, mennyit számít a szempont a végeredményben (alapból mind 1). Ha egy szempontot később adsz hozzá, a korábbi szavazók ugyanazzal a névvel újraszavazva pótolhatják.</div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <span id="cfg-msg" class="note">A változások automatikusan mentődnek.</span>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>Új forduló</h3>
+      <p class="note" style="margin-top:0">Az összes eddigi szavazat törlése, az eredmények újra rejtve lesznek. Nem vonható vissza.</p>
+      <div id="reset-confirm" class="row">
+        <button class="btn danger" id="reset-btn">Összes szavazat törlése</button>
+      </div>
+    </div>
+  </section>
+  <footer style="margin-top:30px;text-align:center" class="note">
+    <span id="who"></span>
+    <button class="btn ghost small" id="login-btn">Szervező belépés</button>
+  </footer>
+</div>
+
+<script type="module">
+/* ============ BEÁLLÍTÁS – EZT KELL KITÖLTENI ============ */
+// A szervező e-mail címe NEM itt van, hanem a Firestore szabályokban.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDE96qnTKfCGXZd9wlit3eHsrGjPb8qc-g",
+  authDomain: "pontozo-1f173.firebaseapp.com",
+  projectId: "pontozo-1f173",
+  storageBucket: "pontozo-1f173.firebasestorage.app",
+  messagingSenderId: "45133896120",
+  appId: "1:45133896120:web:c842cf58d98d3fbd2a974d"
+};
+/* ======================================================== */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const DEFAULT_CFG = {
+  title: "Pontozó",
+  max: 10,
+  revealed: false,
+  items: [{id:"i1",name:"1. versenyző"},{id:"i2",name:"2. versenyző"},{id:"i3",name:"3. versenyző"}],
+  criteria: [
+    {id:"c1",name:"Ötlet, kreativitás",weight:1},
+    {id:"c2",name:"Kivitelezés",weight:1},
+    {id:"c3",name:"Bemutatás",weight:1},
+    {id:"c4",name:"Összbenyomás",weight:1}
+  ]
+};
+
+let cfg = structuredClone(DEFAULT_CFG);
+let votes = [];            // [{id, name, scores, ts}] – csak felfedés után / szervezőnek
+let voterList = [];        // [{id, name, ts}] – mindenkinek látszik (pontok nélkül)
+let fs = null, auth = null, canEdit = false, unsubVotes = null;
+let draft = {};            // itemId -> critId -> n
+let editCfg = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => (Math.round(n*100)/100).toLocaleString("hu-HU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid = p => p + Math.random().toString(36).slice(2,8);
+function keyOf(name){
+  const k = name.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60);
+  return "v-" + (k || "nevtelen");
+}
+function sanitizeCfg(c){
+  const out = structuredClone(DEFAULT_CFG);
+  if(!c || typeof c !== "object") return out;
+  if(typeof c.title === "string") out.title = c.title.slice(0,120);
+  out.revealed = c.revealed === true;
+  const m = Number(c.max); if(m>=2 && m<=10) out.max = Math.round(m);
+  if(Array.isArray(c.items) && c.items.length) out.items = c.items.filter(x=>x&&x.id).map(x=>({id:String(x.id),name:String(x.name||"")}));
+  if(Array.isArray(c.criteria) && c.criteria.length) out.criteria = c.criteria.filter(x=>x&&x.id).map(x=>({id:String(x.id),name:String(x.name||""),weight:Number(x.weight)>0?Number(x.weight):1}));
+  return out;
+}
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  ["vote","results","setup"].forEach(x=>$("#tab-"+x).classList.toggle("hidden",x!==t));
+  if(t==="setup") renderSetup();
+  if(t==="results") renderResults();
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+/* ---------- header ---------- */
+function renderHeader(){
+  $("#title").textContent = cfg.title || "Pontozó";
+  document.title = cfg.title || "Pontozó";
+  $("#subtitle").textContent = `${cfg.criteria.length} szempont · 1–${cfg.max} pont · ${voterList.length} szavazat eddig`;
+}
+
+/* ---------- voting ---------- */
+function totalNeeded(){ return cfg.items.length * cfg.criteria.length; }
+function filled(){ let n=0; for(const it of cfg.items) for(const c of cfg.criteria) if(draft[it.id]?.[c.id]) n++; return n; }
+function renderVote(){
+  const one = cfg.items.length === 1;
+  $("#vote-items").innerHTML = cfg.items.map(it=>{
+    const done = cfg.criteria.every(c=>draft[it.id]?.[c.id]);
+    return `<div class="card">
+      <div class="item-head"><h2 style="margin:0">${esc(one ? (it.name||"Értékelés") : it.name)}</h2>
+        <span class="pill ${done?"ok":""}">${done?"kész":"folyamatban"}</span></div>
+      ${cfg.criteria.map(c=>`
+        <div class="crit">
+          <div class="crit-name">${esc(c.name)} ${c.weight!==1?`<small>×${esc(c.weight)}</small>`:""}</div>
+          <div class="scale">${Array.from({length:cfg.max},(_,i)=>i+1).map(n=>
+            `<button data-i="${esc(it.id)}" data-c="${esc(c.id)}" data-n="${n}" class="${draft[it.id]?.[c.id]===n?"sel":""}">${n}</button>`).join("")}
+          </div>
+        </div>`).join("")}
+    </div>`;
+  }).join("");
+  updateProgress();
+}
+$("#vote-items").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-n]"); if(!b) return;
+  const {i,c,n} = b.dataset;
+  draft[i] = draft[i] || {};
+  draft[i][c] = Number(n);
+  const y = window.scrollY; renderVote(); window.scrollTo(0,y);
+});
+function updateProgress(){
+  const f = filled(), t = totalNeeded();
+  $("#progress").textContent = `${f} / ${t} pont megadva`;
+  $("#submit").disabled = !(f===t && $("#voter").value.trim());
+}
+$("#voter").addEventListener("input",updateProgress);
+
+$("#submit").onclick = async ()=>{
+  const name = $("#voter").value.trim();
+  if(!name || filled()!==totalNeeded()) return;
+  const scores = {};
+  for(const it of cfg.items){ scores[it.id] = {}; for(const c of cfg.criteria) scores[it.id][c.id] = draft[it.id][c.id]; }
+  const rec = {name, scores, ts: Date.now()};
+  const id = keyOf(name);
+  $("#submit").disabled = true; $("#vote-err").textContent = "";
+  try{
+    await setDoc(doc(fs,"votes",id), rec);
+    await setDoc(doc(fs,"voters",id), {name, ts: rec.ts});
+    $("#done-msg").textContent = `Köszönjük, ${name}!`;
+    $("#vote-form").classList.add("hidden");
+    $("#vote-done").classList.remove("hidden");
+    window.scrollTo(0,0);
+  }catch(err){
+    if(err?.code==="permission-denied"){ $("#vote-err").textContent = "Az adatbázis elutasította a mentést (ellenőrizd a Firestore szabályokat)."; }
+    else { $("#vote-err").textContent = "Nem sikerült menteni, próbáld újra."; }
+    updateProgress();
+  }
+};
+$("#next-voter").onclick = ()=>{
+  draft = {}; $("#voter").value = "";
+  $("#vote-done").classList.add("hidden"); $("#vote-form").classList.remove("hidden");
+  renderVote(); $("#voter").focus();
+};
+$("#see-results").onclick = ()=>showTab("results");
+
+/* ---------- results ---------- */
+function computeResults(){
+  return cfg.items.map(it=>{
+    const per = cfg.criteria.map(c=>{
+      const vals = votes.map(v=>Number(v.scores?.[it.id]?.[c.id])).filter(x=>x>=1);
+      return {c, avg: vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null, n: vals.length};
+    });
+    const valid = per.filter(p=>p.avg!==null);
+    const wsum = valid.reduce((a,p)=>a+p.c.weight,0);
+    const total = wsum ? valid.reduce((a,p)=>a+p.avg*p.c.weight,0)/wsum : null;
+    return {it, per, total};
+  }).sort((a,b)=>(b.total??-1)-(a.total??-1));
+}
+function renderResults(){
+  $("#voter-count").textContent = `${voterList.length} szavazó`;
+  const ctrl = canEdit ? `<button class="btn ${cfg.revealed?"ghost":""}" id="reveal-btn">${cfg.revealed?"Eredmények elrejtése":"Eredmények felfedése"}</button>` : "";
+  if(!cfg.revealed){
+    $("#results-note").textContent = "";
+    $("#ranking").innerHTML = `<div class="empty"><div style="font-size:40px">🔒</div>
+      <p style="font-weight:600;color:var(--ink);margin:6px 0">Az eredmények rejtve vannak, amíg mindenki le nem szavazott.</p>
+      <p style="margin:0 0 14px">Így senki pontjait nem befolyásolják a többiekéi.${canEdit?"":" A szervező fedi fel őket."}</p>${ctrl}</div>`;
+    const names = [...voterList].sort((a,b)=>(a.ts||0)-(b.ts||0)).map(v=>`<span class="pill ok" style="margin:0 6px 6px 0">${esc(v.name)}</span>`).join("");
+    $("#voters-table").innerHTML = voterList.length ? `<p class="note" style="margin-top:0">Eddig szavaztak (pontok nélkül):</p>${names}` : `<div class="empty">Még senki nem szavazott.</div>`;
+    bindReveal(); return;
+  }
+  const weighted = cfg.criteria.some(c=>c.weight!==1);
+  $("#results-note").textContent = `Átlagpontok 1–${cfg.max} skálán${weighted?", a végösszeg a szempontok súlyával számolt átlag":""}.`;
+  if(!votes.length){ $("#ranking").innerHTML = `<div class="empty">Még nincs szavazat.</div>${ctrl}`; $("#voters-table").innerHTML=""; bindReveal(); return; }
+  const res = computeResults();
+  let pos = 0, prev = null;
+  $("#ranking").innerHTML = res.map((r,idx)=>{
+    if(r.total!==prev){ pos = idx+1; prev = r.total; }
+    return `<div class="rank ${pos===1?"first":""}">
+      <div class="pos">${pos}.</div>
+      <div><div style="font-weight:600;font-size:16px">${esc(r.it.name)}</div>
+        <div class="bars">${r.per.map(p=>`
+          <div class="bar"><span>${esc(p.c.name)}</span>
+            <div class="track"><div class="fill" style="width:${p.avg?(p.avg/cfg.max*100):0}%"></div></div>
+            <b>${p.avg?fmt(p.avg):"–"}</b></div>`).join("")}
+        </div></div>
+      <div class="score">${r.total!==null?fmt(r.total):"–"} <small>/ ${cfg.max}</small></div>
+    </div>`;
+  }).join("") + (ctrl?`<div style="margin-top:14px">${ctrl}</div>`:"");
+  bindReveal();
+
+  const cols = [];
+  for(const it of cfg.items) for(const c of cfg.criteria) cols.push({it,c});
+  const one = cfg.items.length===1;
+  const sorted = [...votes].sort((a,b)=>(a.ts||0)-(b.ts||0));
+  $("#voters-table").innerHTML = `<table><thead><tr><th>Név</th>${cols.map(x=>`<th class="num">${esc(one?x.c.name:x.it.name+" · "+x.c.name)}</th>`).join("")}${canEdit?"<th></th>":""}</tr></thead>
+    <tbody>${sorted.map(v=>`<tr><td>${esc(v.name)}</td>${cols.map(x=>`<td class="num">${esc(v.scores?.[x.it.id]?.[x.c.id] ?? "–")}</td>`).join("")}
+      ${canEdit?`<td class="num"><button class="btn danger small" data-del="${esc(v.id)}">Törlés</button></td>`:""}</tr>`).join("")}</tbody></table>`;
+}
+function bindReveal(){
+  const b = $("#reveal-btn"); if(!b) return;
+  b.onclick = async ()=>{ b.disabled = true; await saveCfg({...cfg, revealed: !cfg.revealed}).catch(()=>{ b.disabled=false; b.textContent="Nincs jogod ehhez"; }); };
+}
+async function saveCfg(c){
+  await setDoc(doc(fs,"setup","main"), c);
+}
+$("#voters-table").addEventListener("click",async e=>{
+  const b = e.target.closest("[data-del]"); if(!b) return;
+  if(b.dataset.armed!=="1"){ b.dataset.armed="1"; b.textContent="Biztos?"; return; }
+  const id = b.dataset.del;
+  try{ await deleteDoc(doc(fs,"votes",id)); await deleteDoc(doc(fs,"voters",id)); }catch(_){ b.textContent="Hiba"; }
+});
+
+/* ---------- setup ---------- */
+function renderSetup(){
+  if(!editCfg) editCfg = structuredClone(cfg);
+  $("#cfg-title").value = editCfg.title;
+  $("#cfg-max").value = editCfg.max;
+  $("#cfg-items").innerHTML = editCfg.items.map((it,i)=>`
+    <div class="edit-row items"><input type="text" data-k="items" data-i="${i}" data-f="name" value="${esc(it.name)}" placeholder="Versenyző neve">
+    <button class="x" data-rm="items" data-i="${i}" title="Törlés">×</button></div>`).join("");
+  $("#cfg-crits").innerHTML = editCfg.criteria.map((c,i)=>`
+    <div class="edit-row"><input type="text" data-k="criteria" data-i="${i}" data-f="name" value="${esc(c.name)}" placeholder="Szempont neve">
+    <input type="number" min="0.1" step="0.5" data-k="criteria" data-i="${i}" data-f="weight" value="${esc(c.weight)}">
+    <button class="x" data-rm="criteria" data-i="${i}" title="Törlés">×</button></div>`).join("");
+  const ro = !canEdit;
+  document.querySelectorAll("#tab-setup input, #tab-setup button").forEach(el=>el.disabled = ro);
+  $("#cfg-msg").textContent = ro ? "" : ($("#cfg-msg").textContent || "A változások automatikusan mentődnek.");
+  if(ro) $("#cfg-msg").textContent = "A versenyzőket és a szempontokat csak a szervező módosíthatja – lent jelentkezz be.";
+}
+let saveTimer=null, saving=false;
+function queueSave(delay=700){
+  clearTimeout(saveTimer); saving = true;
+  $("#cfg-msg").textContent = "Mentés…";
+  saveTimer = setTimeout(doSave, delay);
+}
+async function doSave(){
+  const c = structuredClone(editCfg);
+  c.items = c.items.filter(x=>x.name.trim()); c.criteria = c.criteria.filter(x=>x.name.trim());
+  if(!c.items.length || !c.criteria.length){ saving = false; $("#cfg-msg").textContent = "Legalább egy versenyző és egy szempont kell (névvel)."; return; }
+  if(!(c.max>=2 && c.max<=10)){ saving = false; $("#cfg-msg").textContent = "A skála 2 és 10 között lehet."; return; }
+  c.criteria.forEach(x=>{ if(!(x.weight>0)) x.weight = 1; });
+  c.revealed = cfg.revealed;
+  saving = true;
+  try{ await saveCfg(c); $("#cfg-msg").textContent = "Elmentve ✓"; }
+  catch(err){ $("#cfg-msg").textContent = err?.code==="permission-denied" ? "Nincs jogod a módosításhoz – jelentkezz be szervezőként." : "Nem sikerült menteni, próbáld újra."; }
+  saving = false;
+}
+$("#tab-setup").addEventListener("input",e=>{
+  const el = e.target;
+  if(el.id==="cfg-title") editCfg.title = el.value;
+  else if(el.id==="cfg-max") editCfg.max = Number(el.value);
+  else if(el.dataset.k){ const v = el.dataset.f==="weight" ? Number(el.value) : el.value; editCfg[el.dataset.k][el.dataset.i][el.dataset.f] = v; }
+  else return;
+  queueSave();
+});
+$("#tab-setup").addEventListener("click",e=>{
+  const rm = e.target.closest("[data-rm]"); if(!rm) return;
+  const arr = editCfg[rm.dataset.rm]; if(arr.length<=1) return;
+  if(rm.dataset.armed!=="1"){ rm.dataset.armed="1"; rm.textContent="✓?"; rm.title="Kattints újra a törléshez"; setTimeout(()=>{ if(rm.isConnected){ rm.dataset.armed=""; rm.textContent="×"; } },3000); return; }
+  arr.splice(Number(rm.dataset.i),1); renderSetup(); queueSave(0);
+});
+function addRow(kind){
+  const row = kind==="items" ? {id:uid("i"),name:""} : {id:uid("c"),name:"",weight:1};
+  editCfg[kind].push(row); renderSetup();
+  const inputs = document.querySelectorAll(`#cfg-${kind==="items"?"items":"crits"} input[data-f=name]`);
+  inputs[inputs.length-1]?.focus();
+}
+$("#add-item").onclick = ()=>addRow("items");
+$("#add-crit").onclick = ()=>addRow("criteria");
+$("#goto-setup").onclick = ()=>showTab("setup");
+function restoreReset(){
+  $("#reset-confirm").innerHTML = `<button class="btn danger" id="reset-btn">Összes szavazat törlése</button>`;
+  bindReset();
+}
+function bindReset(){ $("#reset-btn").onclick = ()=>{
+  $("#reset-confirm").innerHTML = `<span class="note">Biztosan törlöd mind a ${voterList.length} szavazatot?</span>
+    <button class="btn danger small" id="reset-yes">Igen, törlés</button><button class="btn ghost small" id="reset-no">Mégse</button>`;
+  $("#reset-no").onclick = restoreReset;
+  $("#reset-yes").onclick = async ()=>{
+    const ids = new Set([...votes.map(v=>v.id), ...voterList.map(v=>v.id)]);
+    for(const id of ids){ try{ await deleteDoc(doc(fs,"votes",id)); }catch(_){} try{ await deleteDoc(doc(fs,"voters",id)); }catch(_){} }
+    try{ await saveCfg({...cfg, revealed:false}); }catch(_){}
+    renderResults();
+    restoreReset();
+  };
+}; }
+bindReset();
+
+/* ---------- apply ---------- */
+function applyCfg(){
+  // drop draft entries that no longer exist
+  const nd = {};
+  for(const it of cfg.items) for(const c of cfg.criteria) if(draft[it.id]?.[c.id] && draft[it.id][c.id]<=cfg.max){ nd[it.id]=nd[it.id]||{}; nd[it.id][c.id]=draft[it.id][c.id]; }
+  draft = nd;
+  renderHeader(); renderVote();
+  $("#edit-hint").classList.toggle("hidden", !canEdit);
+  if(!$("#tab-results").classList.contains("hidden")) renderResults();
+}
+function banner(msg){ const b=$("#banner"); if(msg){ b.textContent=msg; b.classList.remove("hidden"); } else b.classList.add("hidden"); }
+
+applyCfg();
+
+/* ---------- Firebase ---------- */
+function subscribeVotes(){
+  const want = canEdit || cfg.revealed;
+  if(want && !unsubVotes){
+    unsubVotes = onSnapshot(collection(fs,"votes"), s=>{
+      votes = s.docs.map(d=>{ const x = d.data()||{}; return {id:d.id, name:String(x.name||d.id), scores:x.scores||{}, ts:Number(x.ts)||0}; });
+      if(!$("#tab-results").classList.contains("hidden")) renderResults();
+    }, ()=>{ unsubVotes = null; });
+  } else if(!want && unsubVotes){ unsubVotes(); unsubVotes = null; votes = []; }
+}
+if(FIREBASE_CONFIG.projectId === "IDE_JON"){
+  banner("Az oldal még nincs összekötve az adatbázissal: töltsd ki a FIREBASE_CONFIG részt az index.html elején.");
+  $("#submit").title = "Nincs adatbázis";
+} else {
+  const app = initializeApp(FIREBASE_CONFIG);
+  fs = getFirestore(app); auth = getAuth(app);
+  const timer = setTimeout(()=>banner("A közös adatok még nem érhetők el – ellenőrizd az internetkapcsolatot."), 10000);
+  onSnapshot(doc(fs,"setup","main"), s=>{
+    clearTimeout(timer); banner("");
+    if(s.exists()) cfg = sanitizeCfg(s.data());
+    subscribeVotes();
+    applyCfg();
+    const editing = $("#tab-setup").contains(document.activeElement) || saving;
+    if(!editing){ editCfg = null; if(!$("#tab-setup").classList.contains("hidden")) renderSetup(); }
+  }, err=>{ clearTimeout(timer); banner("Nem sikerült csatlakozni az adatbázishoz ("+(err?.code||"hiba")+")."); });
+  onSnapshot(collection(fs,"voters"), s=>{
+    voterList = s.docs.map(d=>{ const x = d.data()||{}; return {id:d.id, name:String(x.name||d.id), ts:Number(x.ts)||0}; });
+    renderHeader();
+    if(!$("#tab-results").classList.contains("hidden")) renderResults();
+  });
+  onAuthStateChanged(auth, async u=>{
+    canEdit = false;
+    if(u){ try{ await getDoc(doc(fs,"admin","check")); canEdit = true; }catch(_){ canEdit = false; } }
+    $("#who").textContent = u ? (canEdit ? "Szervezőként vagy bejelentkezve ("+u.email+") · " : u.email+" nem a szervező fiókja · ") : "";
+    $("#login-btn").textContent = u ? "Kijelentkezés" : "Szervező belépés";
+    subscribeVotes(); applyCfg();
+    editCfg = null;
+    if(!$("#tab-setup").classList.contains("hidden")) renderSetup();
+  });
+  $("#login-btn").onclick = async ()=>{
+    try{ if(auth.currentUser) await signOut(auth); else await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch(e){ $("#who").textContent = "Belépés sikertelen: "+(e?.code||"hiba")+" · "; }
+  };
+}
+</script>
+</body>
+</html>
